@@ -6,16 +6,20 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import Animated, { FadeInDown, FadeInUp, Layout } from 'react-native-reanimated';
+import Animated, { FadeInUp, FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { InteractivePressable } from '@/components/ui/animated-pressable';
+import { AccentButton } from '@/components/ui/accent-button';
+import { CommunityChips } from '@/components/ui/community-chips';
 import { FloatingOrb } from '@/components/ui/floating-orb';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { Radii, Shadows, Spacing } from '@/constants/ui';
+import { PostCard } from '@/components/ui/post-card';
+import { SectionHeader } from '@/components/ui/section-header';
+import { StatCard } from '@/components/ui/stat-card';
+import { Colors, Motion } from '@/constants/theme';
+import { Spacing } from '@/constants/ui';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { getCommunities, getFeed, likePost, unlikePost } from '@/lib/api';
 import type { Community, Post } from '@/lib/types';
@@ -200,15 +204,10 @@ export default function HomeScreen() {
           ...prev,
           posts: prev.posts.map((item) =>
             item.id === postId
-              ? {
-                  ...item,
-                  likedByMe: previousLiked,
-                  likeCount: previousCount,
-                }
+              ? { ...item, likedByMe: previousLiked, likeCount: previousCount }
               : item
           ),
         }));
-        setError('点赞同步失败，稍后会自动重试。');
       }
     },
     [feed.posts]
@@ -217,186 +216,104 @@ export default function HomeScreen() {
   const renderHeader = useMemo(
     () => (
       <View style={[styles.headerContainer, { paddingTop: Spacing.xl + insets.top }]}>
+        {/* ── 背景氛围层 ─────────────────────── */}
         <View style={styles.ambientLayer} pointerEvents="none">
-          <FloatingOrb size={140} color={palette.accentSoft} style={{ top: -40, right: -20 }} />
           <FloatingOrb
-            size={120}
-            color={palette.accent}
-            style={{ top: 120, left: -30, opacity: 0.2 }}
-            delay={400}
+            size={200}
+            color={palette.decorPurple}
+            opacity={0.5}
+            style={{ top: -60, right: -50 }}
           />
           <FloatingOrb
             size={160}
-            color={palette.icon}
-            style={{ top: 220, right: -60, opacity: 0.15 }}
+            color={palette.decorBlue}
+            opacity={0.4}
+            style={{ top: 140, left: -40 }}
+            delay={400}
+          />
+          <FloatingOrb
+            size={120}
+            color={palette.decorPink}
+            opacity={0.3}
+            style={{ top: 280, right: -30 }}
             delay={800}
           />
         </View>
 
-        <Animated.View entering={FadeInUp.duration(500)}>
-          <ThemedText type="label" style={{ color: palette.muted }}>
-            Hobby Community Kit
+        {/* ── Hero 区域 ──────────────────────── */}
+        <Animated.View entering={FadeInUp.duration(600).springify().damping(20)}>
+          <ThemedText type="caption" style={[styles.heroLabel, { color: palette.accent }]}>
+            ✦ Hobby Community Kit
           </ThemedText>
           <ThemedText type="display" style={styles.heroTitle}>
-            把热爱变成社区
+            把热爱{'\n'}变成社区
           </ThemedText>
           <ThemedText type="default" style={[styles.heroSubtitle, { color: palette.muted }]}>
             轻量模板 + 社区动态，快速启动你的兴趣空间。
           </ThemedText>
         </Animated.View>
 
-        <Animated.View entering={FadeInUp.delay(120).duration(500)} style={styles.heroActions}>
-          <InteractivePressable style={[styles.primaryButton, { backgroundColor: palette.accent }]}>
-            <IconSymbol name="plus" size={18} color={palette.background} />
-            <ThemedText type="defaultSemiBold" style={[styles.primaryButtonText, { color: palette.background }]}>
-              发布动态
-            </ThemedText>
-          </InteractivePressable>
-          <InteractivePressable
-            style={[styles.secondaryButton, { borderColor: palette.border }]}
-            scaleTo={0.96}>
-            <IconSymbol name="magnifyingglass" size={18} color={palette.text} />
-            <ThemedText type="defaultSemiBold">搜索</ThemedText>
-          </InteractivePressable>
+        {/* ── 操作按钮 ──────────────────────── */}
+        <Animated.View
+          entering={FadeInUp.delay(120).duration(500).springify().damping(18)}
+          style={styles.heroActions}>
+          <AccentButton icon="plus" variant="primary">
+            发布动态
+          </AccentButton>
+          <AccentButton icon="magnifyingglass" variant="secondary">
+            搜索
+          </AccentButton>
         </Animated.View>
 
-        <Animated.View entering={FadeInUp.delay(220).duration(500)} style={styles.statsRow}>
-          {stats.map((stat) => (
-            <View
+        {/* ── 统计卡片 ──────────────────────── */}
+        <View style={styles.statsRow}>
+          {stats.map((stat, i) => (
+            <StatCard
               key={stat.label}
-              style={[
-                styles.statCard,
-                { borderColor: palette.border, backgroundColor: palette.surface },
-              ]}>
-              <ThemedText type="headline">{stat.value}</ThemedText>
-              <ThemedText type="caption" style={{ color: palette.muted }}>
-                {stat.label}
-              </ThemedText>
-            </View>
+              label={stat.label}
+              value={stat.value}
+              delay={200 + i * 80}
+            />
           ))}
-        </Animated.View>
-
-        <Animated.View entering={FadeInUp.delay(320).duration(500)} style={styles.sectionHeader}>
-          <ThemedText type="headline">社区</ThemedText>
-          <ThemedText type="link">查看全部</ThemedText>
-        </Animated.View>
-        <View style={styles.communityRow}>
-          <InteractivePressable
-            onPress={() => handleSelectCommunity(null)}
-            style={[
-              styles.communityChip,
-              {
-                backgroundColor: selectedCommunity ? palette.card : palette.accentSoft,
-                borderColor: palette.border,
-              },
-            ]}>
-            <IconSymbol name="sparkles" size={16} color={palette.text} />
-            <ThemedText type="defaultSemiBold">全部</ThemedText>
-          </InteractivePressable>
-          {displayCommunities.map((community) => {
-            const isActive = selectedCommunity === community.id;
-            return (
-              <InteractivePressable
-                key={community.id}
-                onPress={() => handleSelectCommunity(community.id)}
-                style={[
-                  styles.communityChip,
-                  {
-                    backgroundColor: isActive ? community.themeColor : palette.card,
-                    borderColor: palette.border,
-                  },
-                ]}>
-                <View
-                  style={[
-                    styles.communityDot,
-                    { backgroundColor: isActive ? palette.background : community.themeColor },
-                  ]}
-                />
-                <ThemedText
-                  type="defaultSemiBold"
-                  style={{ color: isActive ? palette.background : palette.text }}>
-                  {community.name}
-                </ThemedText>
-              </InteractivePressable>
-            );
-          })}
         </View>
 
-        <Animated.View entering={FadeInUp.delay(420).duration(500)} style={styles.sectionHeader}>
-          <ThemedText type="headline">最新动态</ThemedText>
-          <ThemedText type="caption" style={{ color: palette.muted }}>
-            即刻看到灵感
-          </ThemedText>
-        </Animated.View>
+        {/* ── 社区筛选 ──────────────────────── */}
+        <SectionHeader title="社区" action="查看全部" />
       </View>
     ),
-    [
-      displayCommunities,
-      handleSelectCommunity,
-      palette.accent,
-      palette.accentSoft,
-      palette.background,
-      palette.border,
-      palette.card,
-      palette.icon,
-      palette.muted,
-      palette.surface,
-      palette.text,
-      selectedCommunity,
-      stats,
-      insets.top,
-    ]
+    [palette, stats, insets.top]
+  );
+
+  const renderChips = useMemo(
+    () => (
+      <CommunityChips
+        communities={displayCommunities}
+        selected={selectedCommunity}
+        onSelect={handleSelectCommunity}
+      />
+    ),
+    [displayCommunities, selectedCommunity, handleSelectCommunity]
+  );
+
+  const renderFeedHeader = useMemo(
+    () => (
+      <View style={{ paddingHorizontal: Spacing.lg, marginTop: Spacing.md }}>
+        <SectionHeader title="最新动态" subtitle="即刻看到灵感" />
+      </View>
+    ),
+    []
   );
 
   const renderPost = useCallback(
     ({ item, index }: { item: Post; index: number }) => (
-      <Animated.View
-        entering={FadeInDown.delay(120 + index * 60).duration(450)}
-        layout={Layout.springify()}
-        style={[styles.postCard, { backgroundColor: palette.surface, borderColor: palette.border }]}>
-        <View style={styles.postHeader}>
-          <View style={[styles.postAvatar, { backgroundColor: palette.accentSoft }]}>
-            <IconSymbol name="person.2.fill" size={16} color={palette.accent} />
-          </View>
-          <View style={styles.postMeta}>
-            <ThemedText type="defaultSemiBold">
-              {communityMap.get(item.communityId)?.name ?? '社区'}
-            </ThemedText>
-            <ThemedText type="caption" style={{ color: palette.muted }}>
-              {formatRelative(item.createdAt)}
-            </ThemedText>
-          </View>
-          <IconSymbol name="ellipsis" size={18} color={palette.muted} />
-        </View>
-
-        <ThemedText type="default" style={styles.postContent}>
-          {item.content}
-        </ThemedText>
-
-        <View style={styles.postActions}>
-          <InteractivePressable
-            style={[
-              styles.likeButton,
-              { backgroundColor: item.likedByMe ? palette.accentSoft : palette.card },
-            ]}
-            onPress={() => handleToggleLike(item.id)}>
-            <IconSymbol
-              name={item.likedByMe ? 'heart.fill' : 'heart'}
-              size={18}
-              color={item.likedByMe ? palette.accent : palette.muted}
-            />
-            <ThemedText type="defaultSemiBold">{item.likeCount}</ThemedText>
-          </InteractivePressable>
-          <View style={styles.postActionMeta}>
-            <IconSymbol name="bubble.left.and.bubble.right.fill" size={16} color={palette.muted} />
-            <ThemedText type="caption" style={{ color: palette.muted }}>
-              讨论区开放中
-            </ThemedText>
-          </View>
-        </View>
-      </Animated.View>
+      <PostCard
+        post={item}
+        community={communityMap.get(item.communityId)}
+        index={index}
+        onLike={handleToggleLike}
+      />
     ),
-    [communityMap, handleToggleLike, palette]
+    [communityMap, handleToggleLike]
   );
 
   return (
@@ -405,7 +322,13 @@ export default function HomeScreen() {
         data={displayPosts}
         keyExtractor={(item) => item.id}
         renderItem={renderPost}
-        ListHeaderComponent={renderHeader}
+        ListHeaderComponent={
+          <>
+            {renderHeader}
+            {renderChips}
+            {renderFeedHeader}
+          </>
+        }
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -413,42 +336,36 @@ export default function HomeScreen() {
             refreshing={refreshing}
             onRefresh={() => loadFeed(selectedCommunity ?? undefined, true)}
             tintColor={palette.accent}
+            colors={[palette.accent]}
           />
         }
         ListEmptyComponent={
           loading ? (
             <View style={styles.emptyState}>
-              <ActivityIndicator color={palette.accent} />
+              <ActivityIndicator color={palette.accent} size="small" />
               <ThemedText type="caption" style={{ color: palette.muted }}>
-                正在加载社区动态
+                正在加载社区动态…
               </ThemedText>
             </View>
           ) : null
         }
       />
+
+      {/* ── Toast 提示 ──────────────────────── */}
       {error ? (
-        <View style={[styles.toast, { backgroundColor: palette.surface, borderColor: palette.border }]}>
-          <IconSymbol name="bolt.fill" size={14} color={palette.accent} />
+        <Animated.View
+          entering={FadeIn.duration(300)}
+          style={[
+            styles.toast,
+            { backgroundColor: palette.surface, borderColor: palette.border },
+          ]}>
           <ThemedText type="caption" style={{ color: palette.muted }}>
-            {error}
+            ⚡ {error}
           </ThemedText>
-        </View>
+        </Animated.View>
       ) : null}
     </ThemedView>
   );
-}
-
-function formatRelative(dateString: string) {
-  const date = new Date(dateString);
-  const diff = Date.now() - date.getTime();
-  const minutes = Math.floor(diff / 60000);
-  if (minutes < 1) return '刚刚';
-  if (minutes < 60) return `${minutes} 分钟前`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours} 小时前`;
-  const days = Math.floor(hours / 24);
-  if (days < 7) return `${days} 天前`;
-  return date.toLocaleDateString();
 }
 
 const styles = StyleSheet.create({
@@ -456,131 +373,43 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   listContent: {
-    paddingBottom: Spacing.xl,
+    paddingBottom: Spacing.xxxl,
   },
   headerContainer: {
     paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.md,
+    paddingBottom: Spacing.sm,
     gap: Spacing.lg,
   },
   ambientLayer: {
     ...StyleSheet.absoluteFillObject,
   },
+  heroLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    marginBottom: 4,
+  },
   heroTitle: {
-    marginTop: 6,
+    marginTop: 4,
+    lineHeight: 44,
   },
   heroSubtitle: {
-    marginTop: 8,
+    marginTop: 10,
     maxWidth: 280,
+    lineHeight: 22,
+    fontSize: 15,
   },
   heroActions: {
     flexDirection: 'row',
     gap: Spacing.sm,
   },
-  primaryButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 18,
-    borderRadius: Radii.pill,
-    ...Shadows.soft,
-  },
-  primaryButtonText: {
-    fontSize: 15,
-  },
-  secondaryButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: Radii.pill,
-    borderWidth: 1,
-    backgroundColor: 'transparent',
-  },
   statsRow: {
     flexDirection: 'row',
     gap: Spacing.sm,
   },
-  statCard: {
-    flex: 1,
-    padding: Spacing.sm,
-    borderRadius: Radii.md,
-    borderWidth: 1,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  communityRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.sm,
-  },
-  communityChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: Radii.pill,
-    borderWidth: 1,
-  },
-  communityDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  postCard: {
-    marginHorizontal: Spacing.lg,
-    marginBottom: Spacing.md,
-    padding: Spacing.lg,
-    borderRadius: Radii.lg,
-    borderWidth: 1,
-    ...Shadows.soft,
-  },
-  postHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: Spacing.sm,
-  },
-  postAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  postMeta: {
-    flex: 1,
-    gap: 2,
-  },
-  postContent: {
-    marginBottom: Spacing.md,
-  },
-  postActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  likeButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: Radii.pill,
-  },
-  postActionMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
   emptyState: {
-    paddingTop: Spacing.xl,
+    paddingTop: Spacing.xxl,
     alignItems: 'center',
     gap: Spacing.sm,
   },
@@ -588,14 +417,13 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: Spacing.lg,
     right: Spacing.lg,
-    bottom: Spacing.lg,
+    bottom: Spacing.xxl,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     paddingVertical: 12,
-    paddingHorizontal: 14,
-    borderRadius: Radii.lg,
+    paddingHorizontal: 16,
+    borderRadius: 16,
     borderWidth: 1,
-    ...Shadows.soft,
   },
 });

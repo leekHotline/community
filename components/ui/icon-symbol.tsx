@@ -8,6 +8,8 @@ import { OpaqueColorValue, type StyleProp, type TextStyle } from 'react-native';
 type IconMapping = Record<SymbolViewProps['name'], ComponentProps<typeof MaterialIcons>['name']>;
 type IconSymbolName = keyof typeof MAPPING;
 
+export type { IconSymbolName };
+
 /**
  * Add your SF Symbols to Material Icons mappings here.
  * - see Material Icons in the [Icons Directory](https://icons.expo.fyi).
@@ -27,6 +29,7 @@ const MAPPING = {
   'person.2.fill': 'groups',
   'bolt.fill': 'bolt',
   'bubble.left.and.bubble.right.fill': 'chat-bubble',
+  'bubble.left': 'chat-bubble-outline',
   'square.and.arrow.up': 'share',
 } as IconMapping;
 

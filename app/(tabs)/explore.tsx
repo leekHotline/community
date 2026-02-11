@@ -1,14 +1,18 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import Animated, { FadeInUp } from 'react-native-reanimated';
+import Animated, { FadeInUp, FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { InteractivePressable } from '@/components/ui/animated-pressable';
+import { AccentButton } from '@/components/ui/accent-button';
 import { FloatingOrb } from '@/components/ui/floating-orb';
+import { GlassCard } from '@/components/ui/glass-card';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
+import { InteractivePressable } from '@/components/ui/animated-pressable';
+import { SectionHeader } from '@/components/ui/section-header';
+import { StaggerList } from '@/components/ui/stagger-list';
+import { Colors, Motion } from '@/constants/theme';
 import { Radii, Shadows, Spacing } from '@/constants/ui';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { getCommunities } from '@/lib/api';
@@ -17,16 +21,19 @@ import type { Community } from '@/lib/types';
 const TEMPLATE_CARDS = [
   {
     id: 't-1',
+    emoji: '🏔️',
     title: '周末徒步社群',
     description: '路线 + 装备清单 + 聚会节奏',
   },
   {
     id: 't-2',
+    emoji: '📸',
     title: '摄影作品集',
     description: '主题挑战 + 作品墙 + 展览活动',
   },
   {
     id: 't-3',
+    emoji: '🏃',
     title: '运动打卡营',
     description: '训练计划 + 每日打卡 + 成员排行',
   },
@@ -103,91 +110,119 @@ export default function ExploreScreen() {
       <ScrollView
         contentContainerStyle={[styles.content, { paddingTop: Spacing.xl + insets.top }]}
         showsVerticalScrollIndicator={false}>
+        {/* ── 背景氛围层 ─────────────────────── */}
         <View style={styles.ambientLayer} pointerEvents="none">
-          <FloatingOrb size={180} color={palette.accentSoft} style={{ top: -20, left: -40 }} />
-          <FloatingOrb size={140} color={palette.accent} style={{ top: 120, right: -30 }} delay={600} />
+          <FloatingOrb
+            size={220}
+            color={palette.decorPurple}
+            opacity={0.5}
+            style={{ top: -30, left: -50 }}
+          />
+          <FloatingOrb
+            size={160}
+            color={palette.decorBlue}
+            opacity={0.4}
+            style={{ top: 160, right: -40 }}
+            delay={600}
+          />
         </View>
 
-        <Animated.View entering={FadeInUp.duration(500)}>
-          <ThemedText type="label" style={{ color: palette.muted }}>
-            Community Studio
+        {/* ── Hero 区域 ──────────────────────── */}
+        <Animated.View entering={FadeInUp.duration(600).springify().damping(20)}>
+          <ThemedText type="caption" style={[styles.heroLabel, { color: palette.accent }]}>
+            ✦ Community Studio
           </ThemedText>
           <ThemedText type="display" style={styles.title}>
-            把模板变成品牌
+            把模板{'\n'}变成品牌
           </ThemedText>
-          <ThemedText type="default" style={{ color: palette.muted }}>
+          <ThemedText type="default" style={[styles.subtitle, { color: palette.muted }]}>
             快速配置主题、内容流和互动节奏，让社区自带增长力。
           </ThemedText>
         </Animated.View>
 
-        <Animated.View entering={FadeInUp.delay(120).duration(500)} style={styles.ctaRow}>
-          <InteractivePressable style={[styles.primaryCta, { backgroundColor: palette.accent }]}>
-            <IconSymbol name="sparkles" size={18} color={palette.background} />
-            <ThemedText type="defaultSemiBold" style={{ color: palette.background }}>
-              创建社区
-            </ThemedText>
-          </InteractivePressable>
-          <InteractivePressable
-            style={[styles.secondaryCta, { borderColor: palette.border }]}
-            scaleTo={0.96}>
-            <IconSymbol name="square.and.arrow.up" size={18} color={palette.text} />
-            <ThemedText type="defaultSemiBold">分享模板</ThemedText>
-          </InteractivePressable>
+        {/* ── 操作按钮 ──────────────────────── */}
+        <Animated.View
+          entering={FadeInUp.delay(120).duration(500).springify().damping(18)}
+          style={styles.ctaRow}>
+          <AccentButton icon="sparkles" variant="primary">
+            创建社区
+          </AccentButton>
+          <AccentButton icon="square.and.arrow.up" variant="secondary">
+            分享模板
+          </AccentButton>
         </Animated.View>
 
-        <Animated.View entering={FadeInUp.delay(200).duration(500)} style={styles.sectionHeader}>
-          <ThemedText type="headline">模板推荐</ThemedText>
-          <ThemedText type="caption" style={{ color: palette.muted }}>
-            三步即可发布
-          </ThemedText>
-        </Animated.View>
-        <View style={styles.templateGrid}>
+        {/* ── 模板推荐 ──────────────────────── */}
+        <SectionHeader title="模板推荐" subtitle="三步即可发布" />
+        <StaggerList stagger={80} initialDelay={200} style={styles.templateGrid}>
           {TEMPLATE_CARDS.map((card) => (
-            <InteractivePressable
-              key={card.id}
-              style={[
-                styles.templateCard,
-                { backgroundColor: palette.surface, borderColor: palette.border },
-              ]}>
-              <ThemedText type="defaultSemiBold">{card.title}</ThemedText>
-              <ThemedText type="caption" style={{ color: palette.muted }}>
-                {card.description}
-              </ThemedText>
-            </InteractivePressable>
-          ))}
-        </View>
-
-        <Animated.View entering={FadeInUp.delay(300).duration(500)} style={styles.sectionHeader}>
-          <ThemedText type="headline">热门社区</ThemedText>
-          <ThemedText type="caption" style={{ color: palette.muted }}>
-            当前活跃
-          </ThemedText>
-        </Animated.View>
-        <View style={styles.communityGrid}>
-          {displayCommunities.map((community) => (
-            <InteractivePressable
-              key={community.id}
-              style={[
-                styles.communityCard,
-                { backgroundColor: palette.surface, borderColor: palette.border },
-              ]}>
-              <View style={[styles.communityIcon, { backgroundColor: community.themeColor }]} />
-              <View style={styles.communityMeta}>
-                <ThemedText type="defaultSemiBold">{community.name}</ThemedText>
-                <ThemedText type="caption" style={{ color: palette.muted }}>
-                  {community.description}
-                </ThemedText>
+            <GlassCard key={card.id} style={styles.templateCard} animate={false}>
+              <View style={styles.templateContent}>
+                <View
+                  style={[
+                    styles.templateIcon,
+                    { backgroundColor: palette.accentSoft },
+                  ]}>
+                  <ThemedText style={{ fontSize: 20 }}>{card.emoji}</ThemedText>
+                </View>
+                <View style={styles.templateMeta}>
+                  <ThemedText type="defaultSemiBold" style={{ fontSize: 15 }}>
+                    {card.title}
+                  </ThemedText>
+                  <ThemedText type="caption" style={{ color: palette.muted }}>
+                    {card.description}
+                  </ThemedText>
+                </View>
+                <IconSymbol name="chevron.right" size={14} color={palette.muted} />
               </View>
-              <IconSymbol name="chevron.right" size={18} color={palette.muted} />
+            </GlassCard>
+          ))}
+        </StaggerList>
+
+        {/* ── 热门社区 ──────────────────────── */}
+        <SectionHeader title="热门社区" subtitle="当前活跃" style={{ marginTop: Spacing.md }} />
+        <StaggerList stagger={70} initialDelay={400} style={styles.communityGrid}>
+          {displayCommunities.map((community) => (
+            <InteractivePressable key={community.id} scaleTo={0.97}>
+              <GlassCard style={styles.communityCard} animate={false}>
+                <View style={styles.communityCardInner}>
+                  <View
+                    style={[
+                      styles.communityIcon,
+                      { backgroundColor: community.themeColor },
+                    ]}>
+                    <ThemedText style={styles.communityEmoji}>
+                      {community.name[0]}
+                    </ThemedText>
+                  </View>
+                  <View style={styles.communityMeta}>
+                    <ThemedText type="defaultSemiBold" style={{ fontSize: 15 }}>
+                      {community.name}
+                    </ThemedText>
+                    <ThemedText type="caption" style={{ color: palette.muted }}>
+                      {community.description}
+                    </ThemedText>
+                  </View>
+                  <View style={[styles.joinBtn, { backgroundColor: palette.accentSoft }]}>
+                    <ThemedText type="caption" style={{ color: palette.accent, fontWeight: '600' }}>
+                      加入
+                    </ThemedText>
+                  </View>
+                </View>
+              </GlassCard>
             </InteractivePressable>
           ))}
-        </View>
+        </StaggerList>
 
+        {/* ── 错误提示 ──────────────────────── */}
         {error ? (
-          <View style={[styles.toast, { backgroundColor: palette.surface, borderColor: palette.border }]}>
-            <IconSymbol name="bolt.fill" size={14} color={palette.accent} />
+          <View
+            style={[
+              styles.toast,
+              { backgroundColor: palette.surface, borderColor: palette.border },
+            ]}>
             <ThemedText type="caption" style={{ color: palette.muted }}>
-              {error}
+              ⚡ {error}
             </ThemedText>
           </View>
         ) : null}
@@ -202,78 +237,92 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.xxl,
+    paddingBottom: Spacing.xxxl,
     gap: Spacing.lg,
   },
   ambientLayer: {
     ...StyleSheet.absoluteFillObject,
   },
+  heroLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    marginBottom: 4,
+  },
   title: {
-    marginTop: 6,
+    marginTop: 4,
+    lineHeight: 44,
+  },
+  subtitle: {
+    marginTop: 10,
+    maxWidth: 300,
+    lineHeight: 22,
+    fontSize: 15,
   },
   ctaRow: {
     flexDirection: 'row',
     gap: Spacing.sm,
-  },
-  primaryCta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 18,
-    borderRadius: Radii.pill,
-    ...Shadows.soft,
-  },
-  secondaryCta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: Radii.pill,
-    borderWidth: 1,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
   },
   templateGrid: {
     gap: Spacing.sm,
   },
   templateCard: {
     padding: Spacing.md,
-    borderRadius: Radii.lg,
-    borderWidth: 1,
-    gap: 6,
-    ...Shadows.soft,
+  },
+  templateContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  templateIcon: {
+    width: 42,
+    height: 42,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  templateMeta: {
+    flex: 1,
+    gap: 2,
   },
   communityGrid: {
     gap: Spacing.sm,
   },
   communityCard: {
+    padding: Spacing.md,
+  },
+  communityCardInner: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
-    padding: Spacing.md,
-    borderRadius: Radii.lg,
-    borderWidth: 1,
-    ...Shadows.soft,
   },
   communityIcon: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  communityEmoji: {
+    color: '#FFF',
+    fontSize: 14,
+    fontWeight: '700',
   },
   communityMeta: {
     flex: 1,
     gap: 2,
   },
+  joinBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: Radii.pill,
+  },
   toast: {
     marginTop: Spacing.md,
     borderWidth: 1,
     paddingVertical: 12,
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
     borderRadius: Radii.lg,
     flexDirection: 'row',
     alignItems: 'center',

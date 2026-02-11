@@ -1,41 +1,71 @@
 /**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
+ * 白色主题设计系统 — 60% 留白 + 毛玻璃
+ * 极简、呼吸感、现代化
  */
 
 import { Platform } from 'react-native';
 
-const tintColorLight = '#E4574E';
-const tintColorDark = '#FF7A6A';
+// ─── 主色板 ───────────────────────────────────────────────
+const accent = '#6C5CE7';
+const accentLight = '#A29BFE';
+const accentSoft = '#F0EDFF';
 
 export const Colors = {
   light: {
-    text: '#1A1A1A',
-    background: '#F7F4EF',
+    text: '#1A1A2E',
+    textSecondary: '#64748B',
+    background: '#FAFBFE',
     surface: '#FFFFFF',
-    card: '#FDFBF8',
-    tint: tintColorLight,
-    icon: '#5C6168',
-    muted: '#6B6F76',
-    border: '#E7DED5',
-    accent: tintColorLight,
-    accentSoft: '#FDE8E1',
-    tabIconDefault: '#8B8F96',
-    tabIconSelected: tintColorLight,
+    card: '#FFFFFF',
+    tint: accent,
+    icon: '#94A3B8',
+    muted: '#94A3B8',
+    border: 'rgba(0,0,0,0.06)',
+    borderLight: 'rgba(0,0,0,0.03)',
+    accent,
+    accentLight,
+    accentSoft,
+    tabIconDefault: '#CBD5E1',
+    tabIconSelected: accent,
+    glass: 'rgba(255,255,255,0.72)',
+    glassBorder: 'rgba(255,255,255,0.5)',
+    gradientStart: '#F0EDFF',
+    gradientEnd: '#FAFBFE',
+    success: '#10B981',
+    warning: '#F59E0B',
+    danger: '#EF4444',
+    info: '#3B82F6',
+    decorPurple: 'rgba(108,92,231,0.08)',
+    decorBlue: 'rgba(59,130,246,0.06)',
+    decorPink: 'rgba(236,72,153,0.06)',
   },
   dark: {
-    text: '#F5F5F7',
-    background: '#0F0F12',
-    surface: '#15161A',
-    card: '#1B1C21',
-    tint: tintColorDark,
-    icon: '#A1A4AB',
-    muted: '#A1A4AB',
-    border: '#26282E',
-    accent: tintColorDark,
-    accentSoft: '#2A1F1E',
-    tabIconDefault: '#6E7178',
-    tabIconSelected: tintColorDark,
+    text: '#F1F5F9',
+    textSecondary: '#94A3B8',
+    background: '#0B0D17',
+    surface: '#131525',
+    card: '#1A1D30',
+    tint: accentLight,
+    icon: '#64748B',
+    muted: '#64748B',
+    border: 'rgba(255,255,255,0.06)',
+    borderLight: 'rgba(255,255,255,0.03)',
+    accent: accentLight,
+    accentLight: accent,
+    accentSoft: '#1E1B3A',
+    tabIconDefault: '#475569',
+    tabIconSelected: accentLight,
+    glass: 'rgba(19,21,37,0.8)',
+    glassBorder: 'rgba(255,255,255,0.08)',
+    gradientStart: '#131525',
+    gradientEnd: '#0B0D17',
+    success: '#34D399',
+    warning: '#FBBF24',
+    danger: '#F87171',
+    info: '#60A5FA',
+    decorPurple: 'rgba(162,155,254,0.08)',
+    decorBlue: 'rgba(96,165,250,0.06)',
+    decorPink: 'rgba(244,114,182,0.06)',
   },
 };
 
@@ -50,4 +80,26 @@ export const Fonts = {
     android: 'monospace',
     default: 'monospace',
   }),
+};
+
+export const Motion = {
+  spring: {
+    gentle: { damping: 20, stiffness: 120, mass: 0.8 },
+    bouncy: { damping: 12, stiffness: 200, mass: 0.6 },
+    snappy: { damping: 18, stiffness: 300, mass: 0.5 },
+    slow: { damping: 26, stiffness: 80, mass: 1 },
+  },
+  duration: {
+    instant: 100,
+    fast: 200,
+    normal: 350,
+    slow: 500,
+    entrance: 600,
+    stagger: 60,
+  },
+  scale: {
+    pressed: 0.96,
+    hover: 1.03,
+    subtle: 0.98,
+  },
 };

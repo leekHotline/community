@@ -1,3 +1,7 @@
+/**
+ * 渐变装饰球 — 浮动的背景氛围装饰
+ * 改进版：更柔和的运动轨迹 + 呼吸缩放
+ */
 import { useEffect } from 'react';
 import { StyleProp, ViewStyle } from 'react-native';
 import Animated, {
@@ -6,6 +10,7 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withRepeat,
+  withSequence,
   withTiming,
 } from 'react-native-reanimated';
 
@@ -16,30 +21,46 @@ type FloatingOrbProps = {
   duration?: number;
   amplitude?: number;
   delay?: number;
+  opacity?: number;
 };
 
 export function FloatingOrb({
   size,
   color,
   style,
-  duration = 6000,
-  amplitude = 12,
+  duration = 8000,
+  amplitude = 16,
   delay = 0,
+  opacity = 0.25,
 }: FloatingOrbProps) {
   const progress = useSharedValue(0);
+  const scaleValue = useSharedValue(1);
 
   useEffect(() => {
     progress.value = withRepeat(
-      withTiming(1, { duration, easing: Easing.inOut(Easing.ease), delay }),
+      withTiming(1, {
+        duration,
+        easing: Easing.inOut(Easing.sin),
+      }),
       -1,
       true
     );
-  }, [progress, duration, delay]);
+
+    scaleValue.value = withRepeat(
+      withSequence(
+        withTiming(1.1, { duration: duration * 0.6, easing: Easing.inOut(Easing.ease) }),
+        withTiming(0.95, { duration: duration * 0.4, easing: Easing.inOut(Easing.ease) })
+      ),
+      -1,
+      true
+    );
+  }, [progress, scaleValue, duration]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [
-      { translateY: interpolate(progress.value, [0, 1], [-amplitude, amplitude]) },
-      { translateX: interpolate(progress.value, [0, 1], [amplitude, -amplitude]) },
+      { translateY: interpolate(progress.value, [0, 0.5, 1], [-amplitude, amplitude * 0.5, -amplitude]) },
+      { translateX: interpolate(progress.value, [0, 0.3, 0.7, 1], [0, amplitude * 0.7, -amplitude * 0.3, 0]) },
+      { scale: scaleValue.value },
     ],
   }));
 
@@ -51,7 +72,7 @@ export function FloatingOrb({
           height: size,
           borderRadius: size / 2,
           backgroundColor: color,
-          opacity: 0.35,
+          opacity,
           position: 'absolute',
         },
         animatedStyle,
